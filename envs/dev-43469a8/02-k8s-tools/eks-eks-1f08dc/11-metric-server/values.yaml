@@ -1,5 +1,0 @@
-metrics-server:
-  fullnameOverride: metric-server
-  image:
-    repository: registry.k8s.io/metrics-server/metrics-server
-    tag: v0.6.3

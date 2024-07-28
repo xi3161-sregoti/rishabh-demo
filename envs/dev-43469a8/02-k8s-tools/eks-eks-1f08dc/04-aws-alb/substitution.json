@@ -1,0 +1,48 @@
+{
+  "operations": [
+    {
+      "conditions": [
+        {
+          "expr": "true",
+          "path": "/xlr8s/components/+name:04-aws-alb:3"
+        }
+      ],
+      "op": "replace",
+      "src": "/xlr8s/components/+name:06-eks-iam-addons:5/outputs/aws_lb_controller_role_arn/value",
+      "dst": "/aws-load-balancer-controller/serviceAccount/annotations",
+      "options": {
+        "defaults": {
+          "defaultValueSwitch": true,
+          "format": "json",
+          "value": "{}"
+        },
+        "template": {
+          "value": "{\r\n    \"eks.amazonaws.com/role-arn\": {{.Values}}\r\n}",
+          "format": "yaml"
+        }
+      }
+    },
+    {
+      "conditions": [
+        {
+          "expr": "data.name == '01-aws-vpc'",
+          "path": "/xlr8s/components/+name:01-aws-vpc:0"
+        }
+      ],
+      "op": "replace",
+      "src": "/xlr8s/components/+name:01-aws-vpc:0/outputs/vpc_id/value",
+      "dst": "/aws-load-balancer-controller/vpcId",
+      "options": {
+        "defaults": {
+          "defaultValueSwitch": true,
+          "format": "string",
+          "formatValue": "random-id"
+        },
+        "template": {
+          "value": "{{.Values}}",
+          "format": "string"
+        }
+      }
+    }
+  ]
+}

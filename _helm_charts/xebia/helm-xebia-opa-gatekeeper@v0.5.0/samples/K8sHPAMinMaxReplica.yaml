@@ -1,0 +1,34 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sHPAMinMaxReplica.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sHPAMinMaxReplica
+metadata:
+  name: xlr8s-demo---dev---hpa-not-same-min-max-replica
+  labels:
+    severity: high
+    category: app_qos
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+  
+  match:
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["autoscaling"]
+        kinds: ["HorizontalPodAutoscaler"]
+    
+    labelSelector:
+      matchLabels:
+        null

@@ -1,0 +1,44 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sappstartupprobe
+  annotations:
+    description: Container should use startup probe instead of initial delay seconds
+    category: QOS
+
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAppStartupProbe
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sappstartupprobe
+        import future.keywords.in
+
+        violation[{"msg": msg}] {
+          container := filtered_containers[_]
+          validate(container)
+          msg := sprintf("Container %v in your %v %v should use a startup probe instead of initial delay seconds ", [container.name, input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        validate(ctr) = true{
+          ctr.livenessProbe.initialDelaySeconds
+          ctr.startupProbe
+        }
+
+        validate(ctr) = true{
+          ctr.livenessProbe.initialDelaySeconds
+          not ctr.startupProbe
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          c := input.review.object.spec.template.spec.containers[_]  
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          c := input.review.object.spec.template.spec.initContainers[_]  
+        }

@@ -1,0 +1,40 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sMultipleAZsSupport.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sMultipleAZsSupport
+metadata:
+  name: xlr8s-demo---dev---should-support-multiple-AZs
+  labels:
+    severity: high
+    category: app_resilience
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: deny
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+    
+    labelSelector:
+      matchLabels:
+        null
+      
+
+
+  parameters:
+    skewCount: 2

@@ -1,0 +1,36 @@
+gatekeeper:
+  image:
+    crdRepository: openpolicyagent/gatekeeper-crds
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    release: v3.12.0
+    repository: openpolicyagent/gatekeeper
+  postInstall:
+    labelNamespace:
+      enabled: true
+      image:
+        pullPolicy: IfNotPresent
+        pullSecrets: []
+        repository: openpolicyagent/gatekeeper-crds
+        tag: v3.12.0
+  postUpgrade:
+    labelNamespace:
+      enabled: false
+      image:
+        pullPolicy: IfNotPresent
+        pullSecrets: []
+        repository: openpolicyagent/gatekeeper-crds
+        tag: v3.12.0
+  preInstall:
+    crdRepository:
+      image:
+        repository: null
+        tag: v3.12.0
+  preUninstall:
+    deleteWebhookConfigurations:
+      enabled: false
+      image:
+        pullPolicy: IfNotPresent
+        pullSecrets: []
+        repository: openpolicyagent/gatekeeper-crds
+        tag: v3.12.0

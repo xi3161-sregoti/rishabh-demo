@@ -1,0 +1,32 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8shpapresents
+  annotations:
+    description: If HPA present deployment should not have replica
+    category: QOS
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sHPAPresents
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8shpapresents
+        import future.keywords.in
+       
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          hpas := data.inventory.namespace[input.review.object.metadata.namespace][otherapiversion]["HorizontalPodAutoscaler"]
+          satisfied = [good | hpa = hpas[_]; good = check(hpa)]
+          any(satisfied)
+          input.review.object.spec.replicas
+          msg := sprintf("%v %v have a hpa specified, not need to specify replica count", [input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        check(hpa) = true {
+          hpa.spec.scaleTargetRef.apiVersion == input.review.object.apiVersion
+          hpa.spec.scaleTargetRef.kind == input.review.object.kind
+          hpa.spec.scaleTargetRef.name == input.review.object.metadata.name
+        }

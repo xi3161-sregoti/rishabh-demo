@@ -1,0 +1,28 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sautomountabletoken
+  annotations:
+    description: Default Service Account should have token as false 
+    category: Runtime
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAutomountableToken
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sautomountabletoken
+        import future.keywords.in
+       
+        violation[{"msg": msg}] {
+          input.review.object.kind == "ServiceAccount"
+          input.review.object.metadata.name == "default"
+          check
+          msg := sprintf("%v %v in %v has automountable creds set to true ", [input.review.object.kind, input.review.object.metadata.name, input.review.object.metadata.namespace])
+        }
+
+        check {
+          input.review.object.automountServiceAccountToken == true
+        }

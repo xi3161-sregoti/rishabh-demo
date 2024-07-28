@@ -1,0 +1,39 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sblocknplb
+  annotations:
+    description: Disallows all Services with type NodePort and Loadbalancer.
+    category: Security
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sBlockNpLb
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            allowedSVC:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sblocknplb
+        import future.keywords.in
+
+        violation[{"msg": msg}] {
+          input.review.object.kind == "Service"
+          not input.review.object.metadata.name in input.parameters.allowedSVC
+          input.review.object.spec.type == "NodePort"
+          msg := sprintf("Service %v should not be of type NodePort", [input.review.object.metadata.name])
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.kind == "Service"
+          not input.review.object.metadata.name in input.parameters.allowedSVC
+          input.review.object.spec.type == "LoadBalancer"
+          msg := sprintf("Service %v should not be of type LoadBalancer", [input.review.object.metadata.name])
+        }

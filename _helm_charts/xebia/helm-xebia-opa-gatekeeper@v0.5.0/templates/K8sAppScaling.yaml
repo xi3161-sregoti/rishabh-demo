@@ -1,0 +1,68 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sappscaling
+  annotations:
+    description: Application should use backpressure to scale horizontally 
+    category: QOS
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAppScaling
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sappscaling
+        import future.keywords.in
+        
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          not has_keda_scaled_object
+          msg := sprintf("%v %v must have a Keda ScaledObject", [input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          s_object := get_scaled_object[_]
+          not is_cpu_memory_scaler(s_object)
+          msg := sprintf("ScaledObject for %v %v must have a non-CPU/Memory scaler", [input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        has_keda_scaled_object{
+          scale_object := data.inventory.namespace[input.review.object.metadata.namespace][otherapiversion]["ScaledObject"]
+          satisfied = [good | sObj = scale_object[_]; good = check(sObj)]
+          any(satisfied)
+        }
+
+        get_scaled_object[obj]{
+            element := data.inventory.namespace[input.review.object.metadata.namespace][otherapiversion]["ScaledObject"][_]
+            check(element)
+            obj := element
+        }
+
+        is_cpu_memory_scaler(s_object) {
+          scaler := s_object.spec.triggers
+          satisfied = [good | s = scaler[_]; good = validate(s)]
+          any(satisfied)
+        }
+
+        validate(s){
+          s.type == "cpu"
+        }
+
+        validate(s){
+          s.type == "memory"
+        }
+
+        check(sObj) = true {
+          sObj.spec.scaleTargetRef.apiVersion == input.review.object.apiVersion
+          sObj.spec.scaleTargetRef.kind == input.review.object.kind
+          sObj.spec.scaleTargetRef.name == input.review.object.metadata.name
+        }
+        
+
+        
+        
+        

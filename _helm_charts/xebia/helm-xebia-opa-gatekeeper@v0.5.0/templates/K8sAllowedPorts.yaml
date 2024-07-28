@@ -1,0 +1,56 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sallowedports
+  annotations:
+    description: Services are running on allowed ports
+    category: Security
+
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAllowedPorts
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            allowedPorts:
+              type: array
+              items:
+                type: object
+                properties:
+                  min: 
+                    type: integer
+                  max: 
+                    type: integer
+            
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sallowedports
+        import future.keywords.in
+
+        # Check if services are running on allowed ports
+        violation[{"msg": msg}] {
+          port := service_ports[_]
+          validate(port)
+          msg := sprintf("Port %v in %v %v is not running on allowed port, invaild port:- %v", [port.name, input.review.object.kind, input.review.object.metadata.name, port.targetPort])
+        }
+
+        validate(port){
+          satisfied := [good | range = input.parameters.allowedPorts[_] ; good = check(port, range)]
+          not any(satisfied)
+        }
+        # Check range 
+        check(port, range) {
+          range.min <= port.targetPort
+          port.targetPort <= range.max
+        }
+
+        service_ports[c] {
+          input.review.object.kind == "Service"
+          c := input.review.object.spec.ports[_]
+        }
+
+        

@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions: write-all
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Create release tag
+      id: create_new_tag
+      run: |
+        MAJOR=0
+        MINOR=0
+        current_tag=$(git tag --sort=-version:refname | head -n 1 | tr -d v)
+        old_tag=($(echo $current_tag | tr '.' ' '))
+        MAJOR_OLD=${old_tag[0]}
+        MINOR_OLD=${old_tag[1]}
+        echo "::set-output name=MAJOR_OLD::$MAJOR_OLD"
+        echo "::set-output name=MINOR_OLD::$MINOR_OLD"
+        echo "::set-output name=current_tag::$current_tag"
+        if [ ! -z $current_tag ];
+        then
+            if [ $MAJOR == $MAJOR_OLD ];
+            then
+                MAJOR_NEW=$MAJOR_OLD
+                MINOR_NEW=$((${MINOR_OLD} + 1))
+                NEW_TAG="v${MAJOR_NEW}.${MINOR_NEW}.0"
+                echo "::set-output name=tag::$NEW_TAG"
+            else
+                NEW_TAG="v${MAJOR}.${MINOR}.0"
+                echo "::set-output name=tag::$NEW_TAG"
+            fi
+        else
+            NEW_TAG="v0.1.0"
+            echo "::set-output name=tag::$NEW_TAG"
+        fi
+
+    - name: "✏️ Generate release changelog"
+      id: changelog
+      uses: heinrichreimer/github-changelog-generator-action@v2.3
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create GitHub release
+      uses: actions/create-release@v1
+      if: ${{ github.ref == 'refs/heads/main' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        body: ${{steps.changelog.outputs.changelog}}
+        tag_name: ${{ steps.create_new_tag.outputs.tag }}
+        release_name:  ${{ steps.create_new_tag.outputs.tag }}

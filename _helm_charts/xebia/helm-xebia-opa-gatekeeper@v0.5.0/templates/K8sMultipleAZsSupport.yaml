@@ -1,0 +1,55 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8smultipleazssupport
+  annotations:
+    description: All deployments and statefulset should multiple AZs Support
+    category: Resilience
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sMultipleAZsSupport
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            skewCount:
+              type: integer
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8smultipleazssupport
+        import future.keywords.in
+
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          topology := input.review.object.spec.template.spec.topologySpreadConstraints
+          satisfied := [good | topo = topology[_] ; good = valid_keyConst(topo)]
+          not any(satisfied)
+          msg := sprintf("%v %v is not configured to run in multiple Azs", [input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          topology := input.review.object.spec.template.spec.topologySpreadConstraints
+          satisfied := [good | topo = topology[_] ; good = check_skewCount(topo)]
+          any(satisfied)
+          msg := sprintf("%v %v have more than necessary topology spread constraints skew, recommended: %v", [input.review.object.kind, input.review.object.metadata.name,  input.parameters.skewCount])
+        }
+        
+        valid_keyConst(topo) = true {
+          topo.topologyKey == "topology.kubernetes.io/zone"
+        }
+
+        check_skewCount(topo){
+            valid_keyConst(topo)
+            topo.maxSkew > input.parameters.skewCount
+        }
+
+
+
+        
+        
+        

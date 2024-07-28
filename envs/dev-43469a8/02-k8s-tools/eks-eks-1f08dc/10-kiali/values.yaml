@@ -1,0 +1,86 @@
+kiali-operator:
+  clusterRoleCreator: true
+  cr:
+    create: true
+    name: kiali
+    namespace: istio-system
+    spec:
+      api:
+        namespaces:
+          exclude:
+          - istio-operator
+          - kube-.*
+          - kiali-operator
+          - monitoring
+          - logging
+      auth:
+        strategy: anonymous
+      deployment:
+        accessible_namespaces:
+        - '**'
+        hpa:
+          api_version: autoscaling/v2
+          enabled: false
+        image_name: quay.io/kiali/kiali
+        image_version: v1.65.0
+        ingress:
+          class_name: alb
+          enabled: true
+          override_yaml:
+            metadata:
+              annotations:
+                alb.ingress.kubernetes.io/group.name: internal-tools
+                alb.ingress.kubernetes.io/healthcheck-path: /kiali/healthz
+                alb.ingress.kubernetes.io/healthcheck-port: http
+                alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+                alb.ingress.kubernetes.io/scheme: internet-facing
+                alb.ingress.kubernetes.io/subnets: subnet-0b0f62f5c9a6697d4,subnet-0afccdde86ef8e672,subnet-09a2db7fdac92e25c
+                kubernetes.io/ingress.class: alb
+            spec:
+              rules:
+              - http:
+                  paths:
+                  - backend:
+                      service:
+                        name: kiali
+                        port:
+                          number: 20001
+                    path: /kiali
+                    pathType: Prefix
+        instance_name: kiali
+        namespace: istio-system
+        replicas: 1
+        resources:
+          limits:
+            cpu: 200m
+            memory: 1Gi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        service_type: NodePort
+        view_only_mode: false
+      external_services:
+        prometheus:
+          url: http://prometheus-server.monitoring.svc.cluster.local:80
+      version: default
+  env:
+  - name: ALLOW_AD_HOC_KIALI_IMAGE
+    value: "true"
+  image:
+    repo: quay.io/kiali/kiali-operator
+    tag: v1.43.0
+  metrics:
+    enabled: true
+  onlyViewOnlyMode: false
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  watchNamespace: ""
+preDelete:
+  images: bitnami/kubectl:1.22.10-debian-11-r1
+  sleep: 200

@@ -1,0 +1,59 @@
+aws-ebs-csi-driver:
+  controller:
+    env:
+     - name: AWS_STS_REGIONAL_ENDPOINTS
+       value: legacy
+    resources:
+      requests:
+        cpu: 200m
+        memory: 128Mi
+    region: "ap-south-1"
+    serviceAccount:
+      create: false
+      name: ebs-csi-controller-sa
+      annotations: {}
+
+  node:
+    serviceAccount:
+      create: false
+      name: ebs-csi-node-sa
+      annotations: {}
+
+  storageClasses:
+    - name: ebs-sc
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        encrypted: "true"
+    - name: ebs-sc-1a
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        encrypted: "true"
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1a
+    - name: ebs-sc-1b
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        encrypted: "true"
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1b
+    - name: ebs-sc-1c
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: true
+      parameters:
+        encrypted: "true"
+      allowedTopologies:
+      - matchLabelExpressions:
+        - key: topology.ebs.csi.aws.com/zone
+          values:
+          - ap-south-1c

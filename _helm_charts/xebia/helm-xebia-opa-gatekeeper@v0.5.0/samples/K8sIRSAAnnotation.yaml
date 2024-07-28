@@ -1,0 +1,44 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sIRSAAnnotation.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sIRSAAnnotation
+metadata:
+  name: xlr8s-demo---dev---irsa-annotations
+  labels:
+    severity: high
+    category: app_runtime
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: [""]
+        kinds: ["ServiceAccount"]
+    
+    labelSelector:
+      matchLabels:
+        {}
+      
+
+
+  parameters:
+    annotation:
+    - key: eks.amazonaws.com/role-arn
+      value: arn:aws:iam::111122223333:role
+    - key: eks.amazonaws.com/audience
+      value: sts.amazonaws.com

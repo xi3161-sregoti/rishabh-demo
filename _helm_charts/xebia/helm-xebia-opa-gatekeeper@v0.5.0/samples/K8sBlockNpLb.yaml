@@ -1,0 +1,39 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sBlockNpLb.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sBlockNpLb
+metadata:
+  name: xlr8s-demo---dev---block-node-port
+  labels:
+    severity: high
+    category: app_security
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+
+  match:
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Service"]
+    
+    labelSelector:
+      matchLabels:
+        {}
+      
+
+
+  parameters:
+    allowedSVC: []

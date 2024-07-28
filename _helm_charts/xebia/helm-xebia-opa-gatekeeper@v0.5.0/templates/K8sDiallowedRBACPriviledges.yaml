@@ -1,0 +1,29 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sdiallowedrbacpriviledges
+  annotations:
+    description: Default Service Account should have no RBAC privileges
+    category: Runtime
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sDiallowedRBACPriviledges
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sdiallowedrbacpriviledges
+        import future.keywords.in
+       
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["RoleBinding", "ClusterRoleBinding"]
+          subject := input.review.object.subjects[_]
+          validate(subject)
+          msg := sprintf(" Default Service Accounts of namespace - %s have RBAC privileges defined", [input.review.object.kind])
+        }
+
+        validate(subject){
+          subject.kind == "ServiceAccount"
+          subject.name == "default"
+        }

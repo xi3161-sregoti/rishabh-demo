@@ -1,0 +1,83 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srootfilesystemreadonly
+  annotations:
+    description: Container should have root file system as read only permission
+    category: Security
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRootFileSystemReadOnly
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            skipContainers:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srootfilesystemreadonly
+        import future.keywords.in
+
+        # Check readOnlyRootFilesystem
+        violation[{"msg": msg}] {
+          container := filtered_containers[_]
+          validate(container)
+          msg := sprintf("Container %v in your %v %v should have read only access to the root file system", [container.name, input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        # validate check for readOnlyRootFilesystem 
+        validate(ctr) {
+          not ctr.securityContext.readOnlyRootFilesystem 
+        }
+
+        validate(ctr) {
+          ctr.securityContext.readOnlyRootFilesystem != true
+        }
+
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [good | repo = input.parameters.skipContainers[_] ; good = ctr.name == repo]
+          not any(satisfied)
+        }

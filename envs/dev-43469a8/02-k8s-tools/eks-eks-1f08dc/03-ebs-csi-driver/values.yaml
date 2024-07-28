@@ -1,0 +1,60 @@
+aws-ebs-csi-driver:
+  controller:
+    env:
+    - name: AWS_STS_REGIONAL_ENDPOINTS
+      value: legacy
+    region: ap-south-1
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::474532148129:role/eks-19-ebs-csi-driver-role
+      create: true
+      name: ebs-csi-controller-sa
+  node:
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::474532148129:role/eks-19-ebs-csi-driver-role
+      create: true
+      name: ebs-csi-node-sa
+  storageClasses:
+  - allowVolumeExpansion: true
+    name: ebs-sc
+    parameters:
+      encrypted: "true"
+    volumeBindingMode: WaitForFirstConsumer
+  - allowVolumeExpansion: true
+    allowedTopologies:
+    - matchLabelExpressions:
+      - key: topology.ebs.csi.aws.com/zone
+        values:
+        - ap-south-1a
+    name: ebs-sc-1a
+    parameters:
+      encrypted: "true"
+    volumeBindingMode: WaitForFirstConsumer
+  - allowVolumeExpansion: true
+    allowedTopologies:
+    - matchLabelExpressions:
+      - key: topology.ebs.csi.aws.com/zone
+        values:
+        - ap-south-1b
+    name: ebs-sc-1b
+    parameters:
+      encrypted: "true"
+    volumeBindingMode: WaitForFirstConsumer
+  - allowVolumeExpansion: true
+    allowedTopologies:
+    - matchLabelExpressions:
+      - key: topology.ebs.csi.aws.com/zone
+        values:
+        - ap-south-1c
+    name: ebs-sc-1c
+    parameters:
+      encrypted: "true"
+    volumeBindingMode: WaitForFirstConsumer

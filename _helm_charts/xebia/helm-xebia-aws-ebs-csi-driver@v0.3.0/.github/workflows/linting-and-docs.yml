@@ -1,0 +1,56 @@
+name: Linting and Docs
+on:
+  pull_request:
+
+env:
+  HELM_DOCS_VERSION: "1.11.0"
+
+jobs:
+  Linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v2.1
+
+      - name: Helm Lint
+        run: helm lint
+  
+  helm-docs:
+    needs: [Linting]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Install Pre-Commit Hooks
+        run: |
+          pip install pre-commit
+
+      - name: Pre-Commit Hooks
+        run: |
+          pre-commit install
+          pre-commit install-hooks
+    
+      - name: install helm-docs
+        run: |
+          cd /tmp
+          wget https://github.com/norwoodj/helm-docs/releases/download/v${{env.HELM_DOCS_VERSION}}/helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
+          tar -xvf helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
+          sudo mv helm-docs /usr/local/sbin
+
+      - name: run helm-docs and Push Helm Docs
+        run: | 
+          helm-docs -t README.md.gotmpl -o README.md
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git add .
+          git commit -m "Update Helm Docs"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}

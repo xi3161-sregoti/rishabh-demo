@@ -1,0 +1,88 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sdisallowprivilegedpods
+  annotations:
+    description: Container should not be privileged or allowed privilege escalation
+    category: Security
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sDisallowPrivilegedPods
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            skipContainers:
+              type: array
+              items:
+                type: string
+                
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sdisallowprivilegedpods
+        import future.keywords.in
+
+        # Check for parent
+        violation[{"msg": msg}] {
+          validateND(select_spec)
+          msg = sprintf("%v %v should not be allowed privileged escalation or privileged", [input.review.object.kind, input.review.object.metadata.name])
+        }
+        
+        # Check if containers are overwriting parent
+        violation[{"msg": msg}] {
+          validate(filtered_containers[_])
+          select_spec.securityContext.allowPrivilegeEscalation == false
+          msg = sprintf("Container %v in your %v %v overwrites the parent allow privileged escalation or privileged", [filtered_containers[i].name, input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        # select_spec have all possible spec
+        select_spec := ks {
+          input.review.object.kind == "Pod"
+          ks := input.review.object.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          ks := input.review.object.spec.template.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind == "CronJob"
+          ks := input.review.object.spec.jobTemplate.spec.template.spec
+        }
+
+        #validateND check if allowPrivilegeEscalation
+        validateND(ctr) {
+          not ctr.securityContext.allowPrivilegeEscalation == false
+        }
+
+        validateND(ctr) {
+          not ctr.securityContext.privileged == true
+        }
+
+        validate(ctr) {
+          ctr.securityContext.allowPrivilegeEscalation == true
+        }
+
+        validate(ctr) {
+          ctr.securityContext.privileged == true
+        }
+
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c]{
+          c = select_spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c]{
+          c = select_spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [good | repo = input.parameters.skipContainers[_] ; good = ctr.name == repo]
+          not any(satisfied)
+        }

@@ -1,0 +1,56 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sRequiredProbes.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredProbes
+metadata:
+  name: xlr8s-demo---dev---must-have-probes
+  labels:
+    severity: high
+    category: app_resilience
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+  
+  match:
+
+      
+    namespaces:
+      - default
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+      - apiGroups: [""]
+        kinds: ["Pod"]
+      - apiGroups: ["batch"]
+        kinds: ["CronJob","Job"]
+    
+    labelSelector:
+      matchLabels:
+        app: nginx
+      
+
+
+  parameters:
+    probeTypes:
+    - tcpSocket
+    - httpGet
+    - exec
+    probes:
+    - readinessProbe
+    - livenessProbe
+    - startupProbe
+    skipContainers:
+    - istio-init

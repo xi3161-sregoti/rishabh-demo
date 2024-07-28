@@ -1,0 +1,57 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sminreplicacount
+  annotations:
+    description: All deployments and statefulset should have min replica
+    category: Resilience
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sMinReplicaCount
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            minReplicas:
+              type: integer
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sminreplicacount
+        import future.keywords.in
+
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          hpas := data.inventory.namespace[input.review.object.metadata.namespace][otherapiversion]["HorizontalPodAutoscaler"]
+          satisfied := [good | hpa = hpas[_] ; good = has_hpa(hpa)]
+          not any(satisfied)
+          input.review.object.spec.replicas < input.parameters.minReplicas
+          msg := sprintf("%v %v does not have required minimum Replicas = %v", [input.review.object.kind, input.review.object.metadata.name, input.review.object.spec.replicas])
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.kind in ["Deployment", "StatefulSet"]
+          hpas := data.inventory.namespace[input.review.object.metadata.namespace][otherapiversion]["HorizontalPodAutoscaler"]
+          satisfied := [good | hpa = hpas[_] ; good = check_hpa(hpa)]
+          any(satisfied)
+          msg := sprintf("%v %v accompanying HPA does not have required minimum Replicas", [input.review.object.kind, input.review.object.metadata.name])
+        }
+        
+        has_hpa(hpa) = true {
+          hpa.spec.scaleTargetRef.name == input.review.object.metadata.name
+          hpa.spec.scaleTargetRef.kind == input.review.object.kind
+        }
+
+        check_hpa(hpa) = true {
+          hpa.spec.scaleTargetRef.name == input.review.object.metadata.name
+          hpa.spec.scaleTargetRef.kind == input.review.object.kind
+          hpa.spec.minReplicas < input.parameters.minReplicas
+        }
+
+
+        
+        
+        

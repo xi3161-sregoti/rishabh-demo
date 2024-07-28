@@ -1,0 +1,71 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sdisallowedtags
+  annotations:
+    description: Requires container images to have an image tag different from the ones in the specified list.
+    category: Security
+
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sDisallowedTags
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            tags:
+              type: array
+              description: Disallowed container image tags.
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sdisallowedtags
+        import future.keywords.in
+
+        violation[{"msg": msg}] {
+          container := filtered_containers[_]
+          tag := [forbid | tags = input.parameters.tags[_] ; forbid = endswith(container.image, concat(":", ["", tags]))]
+          any(tag)
+          msg := sprintf("Container %v uses a disallowed tag %v; disallowed tags are %v", [container.name, container.image, input.parameters.tags])
+        }
+
+        violation[{"msg": msg}] {
+          container := filtered_containers[_]
+          tag := [contains(container.image, ":")]
+          not all(tag)
+          msg := sprintf("Container %v didn't specify an image tag %v", [container.name, container.image])
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.containers[_]
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.initContainers[_] 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.containers[_]  
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.initContainers[_]  
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.containers[_]  
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.initContainers[_] 
+        }

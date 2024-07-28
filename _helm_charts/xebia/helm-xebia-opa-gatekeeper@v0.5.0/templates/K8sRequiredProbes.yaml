@@ -1,0 +1,100 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredprobes
+  annotations:
+    description: Requires recources to have readiness, startup and liveness probes.
+    category: Resilience
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredProbes
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            probes:
+              type: array
+              items:
+                type: string
+            probeTypes:
+              type: array
+              items:
+                type: string
+            skipContainers:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredprobes
+        import future.keywords.in
+
+        probe_type_set = probe_types {
+          probe_types := {type | type := input.parameters.probeTypes[_]}
+        }
+
+        violation[{"msg": msg}] {
+          container := filtered_containers[_] 
+          probe := input.parameters.probes[_]
+          probe_is_missing(container, probe)
+          msg := sprintf("Container %v in your %v %v has no %v", [container.name, input.review.object.kind, input.review.object.metadata.name, probe])
+        }
+
+        probe_is_missing(ctr, probe) = true {
+          not ctr[probe]
+        }
+
+        probe_is_missing(ctr, probe) = true {
+          probe_field_empty(ctr, probe)
+        }
+
+        probe_field_empty(ctr, probe) = true {
+          probe_fields := {field | ctr[probe][field]}
+          diff_fields := probe_type_set - probe_fields
+          count(diff_fields) == count(probe_type_set)
+        }
+
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+       
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [val | repo = input.parameters.skipContainers[_] ; val = ctr.name == repo]
+          not any(satisfied)
+        }

@@ -1,0 +1,74 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8shostalias
+  annotations:
+    description: Container should not have host Aliases
+    category: QOS
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sHostAlias
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            skipContainers:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8shostalias
+        import future.keywords.in
+
+        # Check for parent
+        violation[{"msg": msg}] {
+          validate(select_spec)
+          msg = sprintf("%v %v should not have hostAliases", [input.review.object.kind, input.review.object.metadata.name])
+        }
+        
+        # Check if containers
+        violation[{"msg": msg}] {
+          validate(filtered_containers[_].securityContext)
+          msg = sprintf("Container %v in your %v %v should not have hostAliases", [filtered_containers[i].name, input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        # select_spec have all possible spec
+        select_spec := ks {
+          input.review.object.kind == "Pod"
+          ks := input.review.object.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          ks := input.review.object.spec.template.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind == "CronJob"
+          ks := input.review.object.spec.jobTemplate.spec.template.spec
+        }
+
+        #validate check for hostAliases
+        validate(ctr) {
+          ctr.hostAliases[_]
+        }
+
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c]{
+          c = select_spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c]{
+          c = select_spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [good | repo = input.parameters.skipContainers[_] ; good = ctr.name == repo]
+          not any(satisfied)
+        }

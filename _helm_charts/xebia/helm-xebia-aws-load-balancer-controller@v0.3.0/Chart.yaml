@@ -1,0 +1,10 @@
+apiVersion: v2
+name: helm-xebia-aws-load-balancer-controller
+description: A Helm chart to setup aws-load-balancer-controller
+type: application
+version: 0.2.0
+appVersion: "2.2.1"
+dependencies:
+- name: aws-load-balancer-controller
+  version: "1.2.3"
+  repository: "file://../charts/aws-load-balancer-controller"

@@ -1,0 +1,263 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "K8sAllowedConfigmap":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedSecret":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedPorts":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedPullPolicy":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedRepos": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedUserID":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAllowedGroupID":{
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAppScaling": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAppStartupProbe": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sAutomountableToken": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sBlockNpLb": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sCapsOnDeployment": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sCapsOnHPA": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sContainerResourceLimits": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDiallowedRBACPriviledges": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisableHostNetworking": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowedCapabilities": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowedTags": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowHostPath": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowPrivilegedPods": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sEnableAutoscaling": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sHostAlias": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sHPAMinMaxReplica": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sHPAPresents": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sIRSAAnnotation": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sMinReplicaCount": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sMultipleAZsSupport": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sRootFileSystemReadOnly": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowedHostIPCHostPID": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sPodDistributionBudget": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sPodPriority": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sRequiredNamespace": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sRequiredProbes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sRunAsNonRoot": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sDisallowedAdministratorUser": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        },
+        "K8sWindowsAllowedUserIDGroupID": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/constraints"
+            }
+        }
+    },
+    "$defs": {
+        "constraints": {
+            "type": "object",
+            "properties": {
+                "enforcementAction": {
+                    "type": "string",
+                    "enum": ["deny", "warn", "dryrun"]
+                },
+                "filters": {
+                    "type": "object",
+                    "properties": {
+                        "excludedNamespaces": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "labels": {
+                            "type": "object"
+                        },
+                        "namespaces": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "severity": {
+                    "type": "string",
+                    "enum": ["high", "medium", "low"]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "params": {
+                    "type": "object"
+                }
+            }
+        }
+    }
+}

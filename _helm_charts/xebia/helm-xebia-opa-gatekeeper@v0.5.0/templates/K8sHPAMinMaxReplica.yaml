@@ -1,0 +1,29 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8shpaminmaxreplica
+  annotations:
+    description: HPA Should not have same min-max replicas 
+    category: QOS
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sHPAMinMaxReplica
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8shpaminmaxreplica
+
+        violation[{"msg": msg}] {
+          input.review.object.kind == "HorizontalPodAutoscaler"
+          validate 
+          msg := sprintf("%v %v has a maxReplicas equal to or less than min replicas; maxReplicas = %v", [input.review.object.kind, input.review.object.metadata.name, input.review.object.spec.maxReplicas])
+        }
+
+        validate{
+            input.review.object.spec.minReplicas >= input.review.object.spec.maxReplicas
+        }
+
+        

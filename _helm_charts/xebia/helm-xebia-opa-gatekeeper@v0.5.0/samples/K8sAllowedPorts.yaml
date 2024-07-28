@@ -1,0 +1,43 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sAllowedPorts.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAllowedPorts
+metadata:
+  name: xlr8s-demo---dev---service-running-on-allowed-port
+  labels:
+    severity: high
+    category: app_security
+    category: app_security
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+    
+
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Service"]
+    labelSelector:
+      matchLabels:
+        {}
+      
+
+
+  parameters:
+    allowedPorts:
+    - max: 2000
+      min: 1000
+    - max: 6000
+      min: 5000

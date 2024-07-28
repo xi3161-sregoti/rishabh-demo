@@ -1,0 +1,22 @@
+{
+  "operations": [
+    {
+      "conditions": [
+        {
+          "expr": "data.name == '01-aws-vpc'",
+          "path": "/xlr8s/components/+name:01-aws-vpc:0"
+        }
+      ],
+      "op": "add",
+      "src": "/xlr8s/components/+name:01-aws-vpc:0/outputs/public_subnets/value",
+      "dst": "/ingressForIngressGateway/annotations/alb.ingress.kubernetes.io~1subnets",
+      "options": {
+        "defaults": {},
+        "template": {
+          "value": "{{range $index, $element := .Values}}{{if $index}},{{end}}{{$element}}{{end}}",
+          "format": "yaml"
+        }
+      }
+    }
+  ]
+}

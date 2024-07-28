@@ -1,0 +1,35 @@
+---
+# Source: helm-xebia-opa-constraints/templates/k8sdiallowedrbacpriviledges.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: k8sdiallowedrbacpriviledges
+metadata:
+  name: xlr8s-demo---dev---diallowed-rbac-priveledges
+  labels:
+    severity: high
+    category: app_runtime
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: deny
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["rbac.authorization.k8s.io"]
+        kinds: ["RoleBinding", "ClusterRoleBinding"]
+    
+    labelSelector:
+      matchLabels:
+        {}

@@ -1,0 +1,96 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8sallowedgroupid
+  annotations:
+    description: Container should only use allowed group ID
+    category: Security
+    
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sAllowedGroupID
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            groupID:
+              type: array
+              items:
+                type: object
+                properties:
+                  min: 
+                    type: integer
+                  max: 
+                    type: integer
+            skipContainers:
+              type: array
+              items:
+                type: string
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sallowedgroupid
+        import future.keywords.in
+
+        # Check GroupID
+        violation[{"msg": msg}] {
+          container := filtered_containers[_]  
+          validate(container)
+          msg = sprintf("Container %v in your %v %v is running with disallowed group ID %v", [ container.name,input.review.object.kind, input.review.object.metadata.name, container.securityContext.runAsGroup ])
+        }
+
+        validate(ctr){
+          satisfied := [good | range = input.parameters.groupID[_] ; good = check(ctr, range)]
+          not any(satisfied)
+        }
+
+        # Check range 
+        check(ctr, range) {
+          range.min <= ctr.securityContext.runAsGroup
+          ctr.securityContext.runAsGroup <= range.max
+        }
+        
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "Pod"
+          c := input.review.object.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          c := input.review.object.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c] {
+          input.review.object.kind == "CronJob"
+          c := input.review.object.spec.jobTemplate.spec.template.spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+       
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [good | repo = input.parameters.skipContainers[_] ; good = ctr.name == repo]
+          not any(satisfied)
+        }

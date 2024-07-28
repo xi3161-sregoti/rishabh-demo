@@ -1,0 +1,35 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sAppStartupProbe.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAppStartupProbe
+metadata:
+  name: xlr8s-demo---dev---application-with-startup-probe
+  labels:
+    severity: high
+    category: app_qos
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+    
+    labelSelector:
+      matchLabels:
+        null

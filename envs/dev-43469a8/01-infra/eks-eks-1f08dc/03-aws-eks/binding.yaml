@@ -1,0 +1,39 @@
+consumerBindings: []
+producerBindings:
+- options:
+    file: ""
+    format: yaml
+    k8sNamespace: ""
+    template: |
+      kubeconfig : |
+        apiVersion: v1
+        clusters:
+        - cluster:
+            certificate-authority-data: "{{.xlr8s.output.cluster_certificate_authority_data.value}}"
+            server: "{{.xlr8s.output.cluster_endpoint.value}}"
+          name: cluster
+        contexts:
+        - context:
+            cluster: cluster
+            user: user
+          name: context
+        current-context: context
+        kind: Config
+        preferences: {}
+        users:
+        - name: user
+          user:
+            exec:
+              apiVersion: client.authentication.k8s.io/v1beta1
+              args:
+              - --region
+              - "{{.xlr8s.input.region}}"
+              - eks
+              - get-token
+              - --cluster-name
+              - "{{.xlr8s.input.cluster_name}}"
+              - --role
+              - "{{.xlr8s.input.assume_role_arn}}"
+              command: aws
+  secretName: eks-eks
+  secretType: kube-config

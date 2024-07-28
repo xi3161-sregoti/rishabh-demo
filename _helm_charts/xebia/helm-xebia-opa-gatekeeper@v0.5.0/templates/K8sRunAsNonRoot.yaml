@@ -1,0 +1,80 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srunasnonroot
+  annotations:
+    description: Container should run as non root
+    category: Security
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRunAsNonRoot
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            skipContainers:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srunasnonroot
+        import future.keywords.in
+
+        # Check for parent
+        violation[{"msg": msg}] {
+          validateND(select_spec)
+          msg = sprintf("%v %v should run as non root", [input.review.object.kind, input.review.object.metadata.name])
+        }
+        
+        # Check if containers are overwriting parent
+        violation[{"msg": msg}] {
+          validate(filtered_containers[_])
+          select_spec.securityContext.runAsNonRoot == true
+          msg = sprintf("Container %v in your %v %v overwrites the parent and run as root", [filtered_containers[i].name, input.review.object.kind, input.review.object.metadata.name])
+        }
+
+        # select_spec have all possible spec
+        select_spec := ks {
+          input.review.object.kind == "Pod"
+          ks := input.review.object.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind in ["Deployment", "StatefulSet", "Job"]
+          ks := input.review.object.spec.template.spec
+        }
+
+        select_spec := ks {
+          input.review.object.kind == "CronJob"
+          ks := input.review.object.spec.jobTemplate.spec.template.spec
+        }
+
+        #validate check for runAsNonRoot
+        validateND(ctr) {
+          not ctr.securityContext.runAsNonRoot
+        }
+
+        #validate check for runAsNonRoot
+        validate(ctr) {
+          ctr.securityContext.runAsNonRoot == false
+        }
+
+        # filtered_containers returns containers and initContainers
+        filtered_containers[c]{
+          c = select_spec.containers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        filtered_containers[c]{
+          c = select_spec.initContainers[_]
+          check_for_allowedContainers(c) 
+        }
+
+        check_for_allowedContainers(ctr) = true {
+          satisfied := [good | repo = input.parameters.skipContainers[_] ; good = ctr.name == repo]
+          not any(satisfied)
+        }

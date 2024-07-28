@@ -1,0 +1,46 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sRootFileSystemReadOnly.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRootFileSystemReadOnly
+metadata:
+  name: xlr8s-demo---dev---file-system-read-only
+  labels:
+    severity: high
+    category: app_security
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: deny
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+      - apiGroups: [""]
+        kinds: ["Pod"]
+      - apiGroups: ["batch"]
+        kinds: ["CronJob","Job"]
+    
+    
+    labelSelector:
+      matchLabels:
+        {}
+      
+
+
+  parameters:
+    skipContainers:
+    - istio-init

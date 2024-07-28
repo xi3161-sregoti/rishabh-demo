@@ -1,0 +1,20 @@
+aws-load-balancer-controller:
+  # mandatory field
+  clusterName: cluster-name
+  image:
+    repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-load-balancer-controller
+    tag: v2.4.6
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: aws-load-balancer-controller
+  resources:
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingressClass: alb
+  region: "ap-south-1"
+  vpcId: "vpc-xxxx"

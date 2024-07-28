@@ -1,0 +1,37 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sRequiredNamespace.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredNamespace
+metadata:
+  name: xlr8s-demo---dev---resources-must-have-namespace
+  labels:
+    severity: high
+    category: misc
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+  
+  match:
+
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    
+    labelSelector:
+      matchLabels:
+        app: nginx

@@ -1,0 +1,341 @@
+projectId: xlr8s-demo
+envId: dev
+
+K8sAllowedSecret: []
+  
+K8sAllowedConfigmap: []
+  
+K8sAllowedPorts: []
+  
+K8sAllowedPullPolicy: []
+
+K8sAllowedRepos: []
+
+K8sAllowedUserID: []
+
+K8sAllowedGroupID: []
+
+K8sAppScaling:
+  - name: app-scaling
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+      
+K8sAppStartupProbe:
+  - name: app-with-startup-probe
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sAutomountableToken:
+  - name: svc-acc-automount-token
+    category: app_runtime
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+      
+K8sBlockNpLb:
+  - name: block-node-port
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      allowedSVC: []
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sCapsOnDeployment:
+  - name: deployment-must-have-caps
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      minReplicas: 2
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"] 
+
+K8sCapsOnHPA:
+  - name: hpa-must-have-caps
+    category: app_resilience
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      minReplicas: 3
+      maxReplicas: 15
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"] 
+
+K8sContainerResourceLimits:
+  - name: deployment-resource-limits
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      requiredResourceTypes: ["limits", "requests"]
+      requiredResources: ["cpu", "memory"]
+      resourceLimits: 
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"] 
+
+K8sDiallowedRBACPriviledges:
+  - name: diallowed-rbac-priveledges
+    category: app_runtime
+    severity: high
+    enforcementAction: deny
+    params: {}
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sDisableHostNetworking:
+  - name: pods-without-host-network
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"] 
+
+K8sDisallowedCapabilities:
+  - name: disallow-capabilities
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      disAllowedAddCapabilies: ["NET_ADMIN", "ALL"]
+      disAllowedDropCapabilies: []
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sDisallowedTags:
+  - name:  image-uses-allowed-tags
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      tags: ["latest"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sDisallowHostPath:
+  - name: hostpath-volume-disallowed
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      whitelistServices: []
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: []
+
+K8sDisallowPrivilegedPods:
+  - name: not-run-as-privileged
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sEnableAutoscaling:
+  - name: deployment-with-autoscale
+    category: app_resilience
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sHostAlias:
+  - name: should-not-have-host-alisa
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sHPAMinMaxReplica:
+  - name: hpa-diff-min-max-replica
+    category: app_qos 
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sHPAPresents:
+  - name: hpa-present-no-replica
+    category: app_qos
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sIRSAAnnotation:
+  - name: irsa-annotations
+    category: app_runtime
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      annotation: []
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+      
+K8sMinReplicaCount:
+  - name: should-have-min-replica
+    category: app_resilience
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      minReplicas: 3
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sMultipleAZsSupport:
+  - name: support-multiple-azs
+    category:  app_resilience
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skewCount: 2
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sPodDistributionBudget:
+  - name: pod-distribution-budget
+    category:  app_resilience
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+      
+K8sRootFileSystemReadOnly:  
+  - name: file-system-read-only
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sDisallowedHostIPCHostPID:  
+  - name: not-share-hostpid-hostipc
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sPodPriority: []
+
+K8sRequiredNamespace:
+  - name: resources-with-namespace
+    category: misc
+    severity: high
+    enforcementAction: dryrun
+    params: {}
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: []
+
+K8sRequiredProbes: []
+
+K8sRunAsNonRoot:
+  - name: run-as-non-root
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sDisallowedAdministratorUser:
+  - name: user-as-container-admin
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]
+
+K8sWindowsAllowedUserIDGroupID:
+  - name: win-allowed-userid-groupid
+    category: app_security
+    severity: high
+    enforcementAction: dryrun
+    params: 
+      userID: []
+      groupID: []
+      skipContainers: ["istio-init"]
+    filters:
+      labels: {}
+      namespaces: []
+      excludedNamespaces: ["kube-system", "kube-public", "kube-node-lease", "gatekeeper-system", "istio-system","kube-verifier"]

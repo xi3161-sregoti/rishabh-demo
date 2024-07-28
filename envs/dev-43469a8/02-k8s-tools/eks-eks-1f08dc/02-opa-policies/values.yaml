@@ -1,0 +1,472 @@
+K8sAllowedConfigmap: []
+K8sAllowedGroupID: []
+K8sAllowedPorts: []
+K8sAllowedPullPolicy: []
+K8sAllowedRepos: []
+K8sAllowedSecret: []
+K8sAllowedUserID: []
+K8sAppScaling:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: app-scaling
+  params: {}
+  severity: high
+K8sAppStartupProbe:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: app-with-startup-probe
+  params: {}
+  severity: high
+K8sAutomountableToken:
+- category: app_runtime
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: svc-acc-automount-token
+  params: {}
+  severity: high
+K8sBlockNpLb:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: block-node-port
+  params:
+    allowedSVC: []
+  severity: high
+K8sCapsOnDeployment:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: deployment-must-have-caps
+  params:
+    minReplicas: 2
+  severity: high
+K8sCapsOnHPA:
+- category: app_resilience
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: hpa-must-have-caps
+  params:
+    maxReplicas: 15
+    minReplicas: 3
+  severity: high
+K8sContainerResourceLimits:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: deployment-resource-limits
+  params:
+    requiredResourceTypes:
+    - limits
+    - requests
+    requiredResources:
+    - cpu
+    - memory
+    resourceLimits:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+  severity: high
+K8sDiallowedRBACPriviledges:
+- category: app_runtime
+  enforcementAction: deny
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: diallowed-rbac-priveledges
+  params: {}
+  severity: high
+K8sDisableHostNetworking:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: pods-without-host-network
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sDisallowHostPath:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces: []
+    labels: {}
+    namespaces: []
+  name: hostpath-volume-disallowed
+  params:
+    whitelistServices: []
+  severity: high
+K8sDisallowPrivilegedPods:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: not-run-as-privileged
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sDisallowedAdministratorUser:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: user-as-container-admin
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sDisallowedCapabilities:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: disallow-capabilities
+  params:
+    disAllowedAddCapabilies:
+    - NET_ADMIN
+    - ALL
+    disAllowedDropCapabilies: []
+    skipContainers:
+    - istio-init
+  severity: high
+K8sDisallowedHostIPCHostPID:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: not-share-hostpid-hostipc
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sDisallowedTags:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: image-uses-allowed-tags
+  params:
+    tags:
+    - latest
+  severity: high
+K8sEnableAutoscaling:
+- category: app_resilience
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: deployment-with-autoscale
+  params: {}
+  severity: high
+K8sHPAMinMaxReplica:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: hpa-diff-min-max-replica
+  params: {}
+  severity: high
+K8sHPAPresents:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: hpa-present-no-replica
+  params: {}
+  severity: high
+K8sHostAlias:
+- category: app_qos
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: should-not-have-host-alisa
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sIRSAAnnotation:
+- category: app_runtime
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: irsa-annotations
+  params:
+    annotation: []
+  severity: high
+K8sMinReplicaCount:
+- category: app_resilience
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: should-have-min-replica
+  params:
+    minReplicas: 3
+  severity: high
+K8sMultipleAZsSupport:
+- category: app_resilience
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: support-multiple-azs
+  params:
+    skewCount: 2
+  severity: high
+K8sPodDistributionBudget:
+- category: app_resilience
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    namespaces: []
+  name: pod-distribution-budget
+  params: {}
+  severity: high
+K8sPodPriority: []
+K8sRequiredNamespace:
+- category: misc
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces: []
+    labels: {}
+    namespaces: []
+  name: resources-with-namespace
+  params: {}
+  severity: high
+K8sRequiredProbes: []
+K8sRootFileSystemReadOnly:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: file-system-read-only
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sRunAsNonRoot:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: run-as-non-root
+  params:
+    skipContainers:
+    - istio-init
+  severity: high
+K8sWindowsAllowedUserIDGroupID:
+- category: app_security
+  enforcementAction: dryrun
+  filters:
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - gatekeeper-system
+    - istio-system
+    - kube-verifier
+    labels: {}
+    namespaces: []
+  name: win-allowed-userid-groupid
+  params:
+    groupID: []
+    skipContainers:
+    - istio-init
+    userID: []
+  severity: high
+envId: dev-43469a8
+projectId: demodigitalcoe-3ec81a2
+region: ap-south-1

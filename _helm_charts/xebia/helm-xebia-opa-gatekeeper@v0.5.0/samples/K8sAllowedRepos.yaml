@@ -1,0 +1,46 @@
+---
+# Source: helm-xebia-opa-constraints/templates/K8sAllowedRepos.yaml
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAllowedRepos
+metadata:
+  name: xlr8s-demo---dev---allow-repos
+  labels:
+    severity: high
+    category: app_security
+    projectId: xlr8s-demo
+    envId: dev
+spec:
+  enforcementAction: dryrun
+
+  match:
+
+      
+    namespaces:
+      - default
+    
+    
+      
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+      - istio-system
+      - kube-verifier
+    
+
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet"]
+    
+    labelSelector:
+      matchLabels:
+        app: nginx
+      
+
+
+  parameters:
+    repos:
+    - gcr.io/xebia

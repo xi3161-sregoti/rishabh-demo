@@ -1,12 +1,4 @@
 consumerBindings:
-- consumptionType: file
-  options:
-    file: /data/kubeconfig
-    format: yaml
-    k8sNamespace: ""
-    template: '{{.xlr8s.secret.kubeconfig}}'
-  secretName: eks-eks
-  secretType: kube-config
 - consumptionType: k8s-secret
   options:
     file: ""
@@ -23,4 +15,12 @@ consumerBindings:
       }
   secretName: fluent-bit-secret
   secretType: es-auth
+- consumptionType: file
+  options:
+    file: /data/kubeconfig
+    format: yaml
+    k8sNamespace: ""
+    template: '{{.xlr8s.secret.kubeconfig}}'
+  secretName: eks-eks
+  secretType: kube-config
 producerBindings: []
